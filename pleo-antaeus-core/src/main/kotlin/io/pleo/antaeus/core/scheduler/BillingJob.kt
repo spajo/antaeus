@@ -7,7 +7,7 @@ import org.quartz.JobExecutionContext
 
 data class BillingJob(
     private val invoiceService: InvoiceService,
-    private val billingService: BillingService
+    private val billingService: BillingService,
 ) : AntaeusJob(invoiceService, billingService) {
     override fun execute(context: JobExecutionContext?) {
         invoiceService.fetchAll()
@@ -15,11 +15,21 @@ data class BillingJob(
             .forEach {
                 // saving it to val to enforce exhaustive when
                 val result = when (it) {
-                    is PaymentState.Success -> TODO()
-                    is PaymentState.InsufficientFunds -> TODO()
-                    is PaymentState.Failure.CurrencyMismatch -> TODO()
-                    is PaymentState.Failure.CustomerNotFound -> TODO()
-                    is PaymentState.Failure.NetworkFailure -> TODO()
+                    is PaymentState.Success -> {
+                        invoiceService.markPaid(it.invoiceId)
+                    }
+                    is PaymentState.InsufficientFunds -> {
+                        TODO("Pause customer subscription due to no payment? or retry")
+                    }
+                    is PaymentState.Failure.CurrencyMismatch -> {
+                        TODO("fix customer/invoice currency")
+                    }
+                    is PaymentState.Failure.CustomerNotFound -> {
+                        TODO("alert someone that we have an invoice w/o a customer :0")
+                    }
+                    is PaymentState.Failure.NetworkFailure -> {
+                        TODO("Retry with back-off?")
+                    }
                 }
             }
 

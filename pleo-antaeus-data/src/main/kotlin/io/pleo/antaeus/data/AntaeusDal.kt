@@ -17,6 +17,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 class AntaeusDal(private val db: Database) {
     fun fetchInvoice(id: Int): Invoice? {
@@ -30,6 +31,18 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
+    fun updateInvoice(invoice: Invoice): Boolean {
+        return transaction {
+            InvoiceTable
+                .update(where = { InvoiceTable.id.eq(invoice.id) }) {
+                    it[this.value] = invoice.amount.value
+                    it[this.currency] = invoice.amount.currency.toString()
+                    it[this.status] = invoice.status.toString()
+                    it[this.customerId] = invoice.customerId
+                }
+        } > 0
+    }
+
     fun fetchInvoices(): List<Invoice> {
         return transaction(db) {
             InvoiceTable
@@ -38,7 +51,11 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
-    fun createInvoice(amount: Money, customer: Customer, status: InvoiceStatus = InvoiceStatus.PENDING): Invoice? {
+    fun createInvoice(
+        amount: Money,
+        customer: Customer,
+        status: InvoiceStatus = InvoiceStatus.PENDING,
+    ): Invoice? {
         val id = transaction(db) {
             // Insert the invoice and returns its new id.
             InvoiceTable
