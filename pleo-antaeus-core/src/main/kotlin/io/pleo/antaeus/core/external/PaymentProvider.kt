@@ -13,6 +13,8 @@ import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.models.Invoice
 
+
+// As this is an "external" API, I'll try to not change it much
 interface PaymentProvider {
     /**
      *  Charge a customer's account the amount from the invoice.
