@@ -17,21 +17,15 @@ import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerTable
 import io.pleo.antaeus.data.InvoiceTable
 import io.pleo.antaeus.rest.AntaeusRest
-import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.quartz.CronScheduleBuilder
-import org.quartz.JobBuilder
-import org.quartz.TriggerBuilder
 import setupInitialData
 import java.io.File
 import java.sql.Connection
-
-private val logger = KotlinLogging.logger {}
 
 fun main() {
     // The tables to create in the database.
@@ -73,16 +67,15 @@ fun main() {
     // This is _your_ billing service to be included where you see fit
     val billingService = BillingService(paymentProvider = paymentProvider)
 
-    val jobDetail = JobBuilder.newJob(BillingJob::class.java)
-        .withIdentity("billing-job1", "group1")
-        .build()
-    val cronTrigger = TriggerBuilder.newTrigger()
-        .withIdentity("cronTrigger", "group1")
-        .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 1 * ?"))
-        .build()
-
     BillingScheduler(invoiceService, billingService).apply {
-        scheduleJob(jobDetail, cronTrigger)
+        scheduleJob {
+            job<BillingJob> {
+                withIdentity("billing-job1", "group1")
+            }
+            cronTrigger("0 0 0 1 * ?") {
+                withIdentity("cronTrigger", "group1")
+            }
+        }
         start()
     }
 
@@ -92,3 +85,6 @@ fun main() {
         customerService = customerService
     ).run()
 }
+
+//"0/10 * * * * ?"
+// "0 0 0 1 * ?"

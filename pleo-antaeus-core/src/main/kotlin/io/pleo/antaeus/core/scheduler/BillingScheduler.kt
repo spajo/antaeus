@@ -3,10 +3,7 @@ package io.pleo.antaeus.core.scheduler
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
-import org.quartz.JobDetail
-import org.quartz.Scheduler
-import org.quartz.SchedulerException
-import org.quartz.Trigger
+import org.quartz.*
 import org.quartz.impl.StdSchedulerFactory
 
 private val logger = KotlinLogging.logger {}
@@ -21,8 +18,49 @@ class BillingScheduler(
         scheduler.setJobFactory(AntaeusJobFactory(invoiceService, billingService))
     }
 
-    fun scheduleJob(job: JobDetail, trigger: Trigger) {
-        scheduler.scheduleJob(job, trigger)
+    /**
+     * Schedule a job, you can create job and trigger from this micro DSL.
+     *
+     * @see ScheduleJob.job
+     * @see ScheduleJob.cronTrigger
+     */
+    fun scheduleJob(scheduleJob: ScheduleJob.() -> Unit) {
+        ScheduleJob()
+            .apply(scheduleJob)
+            .let {
+                scheduler.scheduleJob(it.job, it.trigger)
+            }
+    }
+
+    class ScheduleJob {
+        // has to be public due to type erasure :(
+        // TODO: add more descriptive exceptions instead of lateinit
+        lateinit var job: JobDetail
+        internal lateinit var trigger: Trigger
+
+        /**
+         * Kotlinified quartz job builder
+         */
+        inline fun <reified T : Job> job(builder: JobBuilder.() -> JobBuilder) {
+            job = JobBuilder.newJob(T::class.java)
+                .builder()
+                .build()
+        }
+
+        /**
+         * Creates Cron Trigger
+         * @see CronExpression
+         * @see CronTrigger
+         */
+        fun cronTrigger(
+            cronExpression: String,
+            builder: TriggerBuilder<CronTrigger>.() -> TriggerBuilder<CronTrigger>,
+        ) {
+            trigger = TriggerBuilder.newTrigger()
+                .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
+                .builder()
+                .build()
+        }
     }
 
     fun start() {
