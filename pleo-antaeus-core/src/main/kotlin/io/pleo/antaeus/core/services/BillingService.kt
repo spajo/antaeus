@@ -23,7 +23,7 @@ class BillingService(
      */
     fun charge(invoice: Invoice) = try {
         if (paymentProvider.charge(invoice)) PaymentState.Success(invoice.id)
-        else PaymentState.InsufficientFunds(invoice.id)
+        else PaymentState.InsufficientFunds(invoice.id, invoice.customerId)
     } catch (ex: CustomerNotFoundException) {
         error(invoice.id, ex)
         PaymentState.Failure.CustomerNotFound(invoice.id, invoice.customerId)

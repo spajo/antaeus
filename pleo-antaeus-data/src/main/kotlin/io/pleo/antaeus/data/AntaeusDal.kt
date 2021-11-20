@@ -12,6 +12,7 @@ import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.models.Money
+import io.pleo.antaeus.models.SubscriptionStatus
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -38,6 +39,29 @@ class AntaeusDal(private val db: Database) {
                     it[this.status] = invoiceStatus.toString()
                 }
         } > 0
+    }
+
+    fun updateSubscriptionStatus(id: Int, subscriptionStatus: SubscriptionStatus): Boolean {
+        return transaction {
+            CustomerTable
+                .update(where = { CustomerTable.id.eq(id) }) {
+                    it[this.subscriptionStatus] = subscriptionStatus.toString()
+                }
+        } > 0
+    }
+
+    fun invoiceExists(id: Int): Boolean {
+        return transaction {
+            InvoiceTable.select { InvoiceTable.id.eq(id) }
+                .empty().not()
+        }
+    }
+
+    fun customerExists(id: Int): Boolean {
+        return transaction {
+            CustomerTable.select { CustomerTable.id.eq(id) }
+                .empty().not()
+        }
     }
 
     fun fetchInvoices(): List<Invoice> {
@@ -84,11 +108,15 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
-    fun createCustomer(currency: Currency): Customer? {
+    fun createCustomer(
+        currency: Currency,
+        status: SubscriptionStatus = SubscriptionStatus.PAUSED,
+    ): Customer? {
         val id = transaction(db) {
             // Insert the customer and return its new id.
             CustomerTable.insert {
                 it[this.currency] = currency.toString()
+                it[this.subscriptionStatus] = status.toString()
             } get CustomerTable.id
         }
 

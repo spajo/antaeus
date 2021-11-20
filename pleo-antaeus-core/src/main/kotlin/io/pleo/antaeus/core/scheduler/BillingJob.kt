@@ -1,14 +1,17 @@
 package io.pleo.antaeus.core.scheduler
 
 import io.pleo.antaeus.core.services.BillingService
+import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.core.state.PaymentState
 import org.quartz.JobExecutionContext
 
-data class BillingJob(
+class BillingJob(
     private val invoiceService: InvoiceService,
+    private val customerService: CustomerService,
     private val billingService: BillingService,
-) : AntaeusJob(invoiceService, billingService) {
+    private val failureHandler: FailureHandler = DefaultFailureHandler(),
+) : AntaeusJob(invoiceService, customerService, billingService) {
     override fun execute(context: JobExecutionContext?) {
         invoiceService.fetchAll()
             .map { billingService.charge(it) }
@@ -19,19 +22,24 @@ data class BillingJob(
                         invoiceService.markPaid(it.invoiceId)
                     }
                     is PaymentState.InsufficientFunds -> {
-                        TODO("Pause customer subscription due to no payment? or retry")
+                        customerService.pauseSubscription(it.customerId, it.invoiceId)
                     }
-                    is PaymentState.Failure.CurrencyMismatch -> {
-                        TODO("fix customer/invoice currency")
-                    }
-                    is PaymentState.Failure.CustomerNotFound -> {
-                        TODO("alert someone that we have an invoice w/o a customer :0")
-                    }
-                    is PaymentState.Failure.NetworkFailure -> {
-                        TODO("Retry with back-off?")
+                    is PaymentState.Failure -> {
+                        failureHandler.handle(it)
                     }
                 }
             }
+    }
+}
 
+interface FailureHandler {
+    fun handle(failure: PaymentState.Failure): Boolean
+}
+
+class DefaultFailureHandler : FailureHandler {
+    override fun handle(failure: PaymentState.Failure): Boolean = when (failure) {
+        is PaymentState.Failure.CurrencyMismatch -> TODO()
+        is PaymentState.Failure.CustomerNotFound -> TODO()
+        is PaymentState.Failure.NetworkFailure -> TODO()
     }
 }
