@@ -31,14 +31,11 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
-    fun updateInvoice(invoice: Invoice): Boolean {
+    fun updateInvoiceStatus(id: Int, invoiceStatus: InvoiceStatus): Boolean {
         return transaction {
             InvoiceTable
-                .update(where = { InvoiceTable.id.eq(invoice.id) }) {
-                    it[this.value] = invoice.amount.value
-                    it[this.currency] = invoice.amount.currency.toString()
-                    it[this.status] = invoice.status.toString()
-                    it[this.customerId] = invoice.customerId
+                .update(where = { InvoiceTable.id.eq(id) }) {
+                    it[this.status] = invoiceStatus.toString()
                 }
         } > 0
     }
