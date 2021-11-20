@@ -10,8 +10,8 @@ class BillingJob(
     private val invoiceService: InvoiceService,
     private val customerService: CustomerService,
     private val billingService: BillingService,
-    private val failureHandler: FailureHandler = DefaultFailureHandler(),
 ) : AntaeusJob(invoiceService, customerService, billingService) {
+    private val failureHandler: FailureHandler = DefaultFailureHandler()
     override fun execute(context: JobExecutionContext?) {
         invoiceService.fetchAll()
             .map { billingService.charge(it) }
