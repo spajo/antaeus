@@ -81,7 +81,7 @@ fun main() {
         .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 1 * ?"))
         .build()
 
-    BillingScheduler().apply {
+    BillingScheduler(invoiceService, billingService).apply {
         scheduleJob(jobDetail, cronTrigger)
         start()
     }

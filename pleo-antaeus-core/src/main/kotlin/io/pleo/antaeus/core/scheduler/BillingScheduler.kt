@@ -1,5 +1,7 @@
 package io.pleo.antaeus.core.scheduler
 
+import io.pleo.antaeus.core.services.BillingService
+import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
 import org.quartz.JobDetail
 import org.quartz.Scheduler
@@ -9,7 +11,15 @@ import org.quartz.impl.StdSchedulerFactory
 
 private val logger = KotlinLogging.logger {}
 
-class BillingScheduler(private val scheduler: Scheduler = StdSchedulerFactory.getDefaultScheduler()) {
+class BillingScheduler(
+    invoiceService: InvoiceService,
+    billingService: BillingService,
+    private val scheduler: Scheduler = StdSchedulerFactory.getDefaultScheduler()
+) {
+
+    init {
+        scheduler.setJobFactory(AntaeusJobFactory(invoiceService, billingService))
+    }
 
     fun scheduleJob(job: JobDetail, trigger: Trigger) {
         scheduler.scheduleJob(job, trigger)
