@@ -6,21 +6,21 @@ import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.core.state.PaymentState
 import io.pleo.antaeus.models.Invoice
-import org.slf4j.LoggerFactory
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 class BillingService(
     private val paymentProvider: PaymentProvider
 ) {
-    companion object {
-        @JvmStatic
-        private val LOGGER = LoggerFactory.getLogger(PaymentState::class.java)
-    }
 
-    // TODO - Add code e.g. here
-    // EX to handle
-    // `CustomerNotFoundException`: when no customer has the given id.
-    // `CurrencyMismatchException`: when the currency does not match the customer account.
-    // `NetworkException`: when a network error happens.
+    /**
+     * Charges the invoice via the payment provider and returns the state of the payment.
+     *
+     * @return `PaymentState.Success` in case of successful payment, `PaymentState.InsufficientFunds`
+     *  when the provider returns `False`, `PaymentState.Failure` in case of any Exceptions
+     *  @see PaymentState
+     */
     fun charge(invoice: Invoice) = try {
         if (paymentProvider.charge(invoice)) PaymentState.Success(invoice.id)
         else PaymentState.InsufficientFunds(invoice.id)
@@ -36,6 +36,6 @@ class BillingService(
     }
 
     private fun error(invoiceId: Int, ex: Exception) {
-        LOGGER.error("Invoice[$invoiceId] charging failed!", ex)
+        logger.error("Invoice[$invoiceId] charging failed!", ex)
     }
 }
