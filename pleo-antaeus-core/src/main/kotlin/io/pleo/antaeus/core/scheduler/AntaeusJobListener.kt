@@ -5,7 +5,15 @@ import org.quartz.JobExecutionContext
 import org.quartz.JobExecutionException
 import org.quartz.listeners.JobListenerSupport
 
-class AntaeusJobListener(private val telemetry: Telemetry) : JobListenerSupport() {
+interface Results {
+    fun results(): List<Result>
+}
+
+class AntaeusJobListener(private val telemetry: Telemetry) : JobListenerSupport(), Results {
+
+    private val results = mutableListOf<Result>()
+    override fun results() = results.toList()
+
     override fun getName(): String = "antaeus-job-listener"
 
     override fun jobExecutionVetoed(context: JobExecutionContext?) {
@@ -20,8 +28,9 @@ class AntaeusJobListener(private val telemetry: Telemetry) : JobListenerSupport(
         jobException: JobExecutionException?,
     ) {
         val message = context?.let {
-            val resultMessage = it.result as String
-            it.jobDetail.jobClass.name.let { "$it finished! $resultMessage" }
+            val result = it.result as Result
+            results.add(result)
+            it.jobDetail.jobClass.name.let { "$it finished! $result" }
         } ?: "Unable to get job details..."
         telemetry.sendAlert("JOB", message)
     }

@@ -3,6 +3,7 @@ package io.pleo.antaeus.core.scheduler
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import org.quartz.Job
+import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
 import org.quartz.SchedulerException
 import org.quartz.simpl.SimpleJobFactory
@@ -16,7 +17,17 @@ import org.quartz.spi.TriggerFiredBundle
 sealed class AntaeusJob(
     invoiceService: InvoiceService,
     customerService: CustomerService,
-) : Job
+) : Job {
+    abstract fun startJob(): Result
+    override fun execute(context: JobExecutionContext?) {
+        context?.result = startJob()
+    }
+}
+
+// TODO: add timestamps more details etc
+data class Result(var paymentSuccessCount: Int, var paymentFailureCount: Int) {
+    constructor() : this(0, 0)
+}
 
 /**
  * Produces jobs and handles service injection into `AntaeusJobs`

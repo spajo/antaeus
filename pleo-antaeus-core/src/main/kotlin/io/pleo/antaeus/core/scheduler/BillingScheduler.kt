@@ -16,9 +16,14 @@ class BillingScheduler(
     private val scheduler: Scheduler = StdSchedulerFactory.getDefaultScheduler(),
 ) {
 
+    private val jobListener = AntaeusJobListener(telemetry)
+
+    val results: Results
+        get() = jobListener
+
     init {
         scheduler.setJobFactory(AntaeusJobFactory(invoiceService, customerService))
-        scheduler.listenerManager.addJobListener(AntaeusJobListener(telemetry))
+        scheduler.listenerManager.addJobListener(jobListener as JobListener)
     }
 
     /**

@@ -69,12 +69,12 @@ fun main() {
         billingService = billingService)
     val customerService = CustomerService(dal = dal, telemetry = telemetry)
 
-    BillingScheduler(invoiceService, customerService, telemetry).apply {
+    val scheduler = BillingScheduler(invoiceService, customerService, telemetry).apply {
         schedule {
             job<BillingJob> {
                 withIdentity("billing-job1", "group1")
             }
-            cronTrigger("0 0 0 1 * ?") {
+            cronTrigger("0/10 * * * * ?") {
                 withIdentity("cronTrigger", "group1")
             }
         }
@@ -84,7 +84,8 @@ fun main() {
     // Create REST web service
     AntaeusRest(
         invoiceService = invoiceService,
-        customerService = customerService
+        customerService = customerService,
+        results = scheduler.results
     ).run()
 }
 
