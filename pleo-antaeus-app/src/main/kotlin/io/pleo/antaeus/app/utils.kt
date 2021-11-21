@@ -1,10 +1,12 @@
 
 import io.pleo.antaeus.core.external.PaymentProvider
+import io.pleo.antaeus.core.external.Telemetry
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.Currency
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.models.Money
+import mu.KotlinLogging
 import java.math.BigDecimal
 import kotlin.random.Random
 
@@ -34,7 +36,19 @@ internal fun setupInitialData(dal: AntaeusDal) {
 internal fun getPaymentProvider(): PaymentProvider {
     return object : PaymentProvider {
         override fun charge(invoice: Invoice): Boolean {
-                return Random.nextBoolean()
+            return Random.nextBoolean()
+        }
+    }
+}
+
+private val logger = KotlinLogging.logger {}
+
+// Mocked telemetry, this will gather all alerts for ops team
+internal fun getTelemetry(): Telemetry {
+    return object : Telemetry {
+        override fun sendAlert(domain: String, alertMessage: String) {
+            // let's assume that his sends an Alert to something like Application Insights
+            logger.error { "[$domain] $alertMessage" }
         }
     }
 }

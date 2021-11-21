@@ -4,7 +4,10 @@ import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.core.state.PaymentState
+import mu.KotlinLogging
 import org.quartz.JobExecutionContext
+
+private val logger = KotlinLogging.logger {}
 
 class BillingJob(
     private val invoiceService: InvoiceService,
@@ -13,7 +16,9 @@ class BillingJob(
 ) : AntaeusJob(invoiceService, customerService, billingService) {
     private val failureHandler: FailureHandler = DefaultFailureHandler()
     override fun execute(context: JobExecutionContext?) {
-        invoiceService.fetchAll()
+        logger.info { "Starting job [${this.javaClass.name}]..." }
+        invoiceService.fetchAllPending()
+            .also { logger.info { "Processing ${it.size} pending invoices..." } }
             .map { billingService.charge(it) }
             .forEach {
                 // saving it to val to enforce exhaustive when

@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
+import io.pleo.antaeus.core.external.Telemetry
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.InvoiceStatus
 import org.junit.jupiter.api.Test
@@ -16,7 +17,9 @@ class InvoiceServiceTest {
         every { updateInvoiceStatus(404, InvoiceStatus.PAID) } returns false
     }
 
-    private val invoiceService = InvoiceService(dal = dal)
+    private val telemetry = mockk<Telemetry> {}
+
+    private val invoiceService = InvoiceService(dal = dal, telemetry = telemetry)
 
     @Test
     fun `will throw if invoice is not found`() {

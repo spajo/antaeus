@@ -5,6 +5,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
+import io.pleo.antaeus.core.external.Telemetry
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.models.SubscriptionStatus
@@ -22,7 +23,9 @@ class CustomerServiceTest {
         every { updateInvoiceStatus(1, InvoiceStatus.PAUSED) } returns true
     }
 
-    private val customerService = CustomerService(dal = dal)
+    private val telemetry = mockk<Telemetry> {}
+
+    private val customerService = CustomerService(dal = dal, telemetry = telemetry)
 
     @Test
     fun `will throw if customer is not found`() {

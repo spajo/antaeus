@@ -6,12 +6,13 @@ package io.pleo.antaeus.core.services
 
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
+import io.pleo.antaeus.core.external.Telemetry
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.models.SubscriptionStatus
 
-class CustomerService(private val dal: AntaeusDal) {
+class CustomerService(private val dal: AntaeusDal, private val telemetry: Telemetry) {
     fun fetchAll(): List<Customer> {
         return dal.fetchCustomers()
     }
