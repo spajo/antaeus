@@ -48,7 +48,7 @@ internal fun getTelemetry(): Telemetry {
     return object : Telemetry {
         override fun sendAlert(domain: String, alertMessage: String) {
             // let's assume that his sends an Alert to something like Application Insights
-            logger.error { "[$domain] $alertMessage" }
+            logger.info { "[$domain] $alertMessage" }
         }
     }
 }

@@ -14,35 +14,33 @@ class BillingJob(
     private val customerService: CustomerService,
     private val billingService: BillingService,
 ) : AntaeusJob(invoiceService, customerService, billingService) {
-    private val failureHandler: FailureHandler = DefaultFailureHandler()
+
     override fun execute(context: JobExecutionContext?) {
         logger.info { "Starting job [${this.javaClass.name}]..." }
-        invoiceService.fetchAllPending()
+        context?.result = invoiceService.fetchAllPending()
             .also { logger.info { "Processing ${it.size} pending invoices..." } }
+            .asSequence()
             .map { billingService.charge(it) }
-            .forEach {
-                // saving it to val to enforce exhaustive when
-                val result = when (it) {
+            .map {
+                when (it) {
                     is PaymentState.Success -> {
                         invoiceService.markPaid(it.invoiceId)
                     }
                     is PaymentState.InsufficientFunds -> {
-                        customerService.pauseSubscription(it.customerId, it.invoiceId)
+                        customerService
+                            .pauseSubscription(it.customerId, it.invoiceId)
                     }
                     is PaymentState.Failure -> {
-                        failureHandler.handle(it)
+                        handle(it)
                     }
                 }
             }
+            .groupBy { it }
+            .map { (key, value) -> (if (key) "success" else "failure") to value.size }
+            .joinToString(prefix = "Billing Job Results") { "${it.first} : ${it.second}" }
     }
-}
 
-interface FailureHandler {
-    fun handle(failure: PaymentState.Failure): Boolean
-}
-
-class DefaultFailureHandler : FailureHandler {
-    override fun handle(failure: PaymentState.Failure): Boolean = when (failure) {
+    private fun handle(failure: PaymentState.Failure): Boolean = when (failure) {
         is PaymentState.Failure.CurrencyMismatch -> TODO()
         is PaymentState.Failure.CustomerNotFound -> TODO()
         is PaymentState.Failure.NetworkFailure -> TODO()

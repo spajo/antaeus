@@ -68,8 +68,8 @@ fun main() {
     // This is _your_ billing service to be included where you see fit
     val billingService = BillingService(paymentProvider = paymentProvider)
 
-    BillingScheduler(invoiceService, customerService, billingService).apply {
-        scheduleJob {
+    BillingScheduler(invoiceService, customerService, billingService, telemetry).apply {
+        schedule {
             job<BillingJob> {
                 withIdentity("billing-job1", "group1")
             }

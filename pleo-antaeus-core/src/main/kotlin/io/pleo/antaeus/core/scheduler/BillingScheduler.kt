@@ -1,5 +1,6 @@
 package io.pleo.antaeus.core.scheduler
 
+import io.pleo.antaeus.core.external.Telemetry
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -13,11 +14,13 @@ class BillingScheduler(
     invoiceService: InvoiceService,
     customerService: CustomerService,
     billingService: BillingService,
+    telemetry: Telemetry,
     private val scheduler: Scheduler = StdSchedulerFactory.getDefaultScheduler(),
 ) {
 
     init {
         scheduler.setJobFactory(AntaeusJobFactory(invoiceService, customerService, billingService))
+        scheduler.listenerManager.addJobListener(AntaeusJobListener(telemetry))
     }
 
     /**
@@ -26,7 +29,7 @@ class BillingScheduler(
      * @see ScheduleJob.job
      * @see ScheduleJob.cronTrigger
      */
-    fun scheduleJob(scheduleJob: ScheduleJob.() -> Unit) {
+    fun schedule(scheduleJob: ScheduleJob.() -> Unit) {
         ScheduleJob()
             .apply(scheduleJob)
             .let {
@@ -34,7 +37,7 @@ class BillingScheduler(
             }
     }
 
-    class ScheduleJob {
+    inner class ScheduleJob {
         // has to be public due to type erasure :(
         // TODO: add more descriptive exceptions instead of lateinit
         lateinit var job: JobDetail
