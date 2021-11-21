@@ -1,6 +1,5 @@
 package io.pleo.antaeus.core.scheduler
 
-import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import org.quartz.Job
@@ -17,7 +16,6 @@ import org.quartz.spi.TriggerFiredBundle
 sealed class AntaeusJob(
     invoiceService: InvoiceService,
     customerService: CustomerService,
-    billingService: BillingService,
 ) : Job
 
 /**
@@ -27,7 +25,6 @@ sealed class AntaeusJob(
 class AntaeusJobFactory(
     private val invoiceService: InvoiceService,
     private val customerService: CustomerService,
-    private val billingService: BillingService,
 ) : SimpleJobFactory() {
     override fun newJob(bundle: TriggerFiredBundle?, scheduler: Scheduler?): Job {
         val jobDetail = bundle!!.jobDetail
@@ -36,9 +33,8 @@ class AntaeusJobFactory(
             try {
                 jobClass.getDeclaredConstructor(
                     InvoiceService::class.java,
-                    CustomerService::class.java,
-                    BillingService::class.java
-                ).newInstance(invoiceService, customerService, billingService)
+                    CustomerService::class.java
+                ).newInstance(invoiceService, customerService)
             } catch (e: Exception) {
                 throw SchedulerException(
                     "Problem instantiating Antaeus Job '${jobClass.name}'", e

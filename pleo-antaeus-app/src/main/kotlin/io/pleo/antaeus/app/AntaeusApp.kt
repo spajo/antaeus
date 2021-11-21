@@ -61,14 +61,15 @@ fun main() {
     // Get third parties
     val paymentProvider = getPaymentProvider()
     val telemetry = getTelemetry()
-    // Create core services
-    val invoiceService = InvoiceService(dal = dal, telemetry = telemetry)
-    val customerService = CustomerService(dal = dal, telemetry = telemetry)
-
     // This is _your_ billing service to be included where you see fit
     val billingService = BillingService(paymentProvider = paymentProvider)
+    // Create core services
+    val invoiceService = InvoiceService(dal = dal,
+        telemetry = telemetry,
+        billingService = billingService)
+    val customerService = CustomerService(dal = dal, telemetry = telemetry)
 
-    BillingScheduler(invoiceService, customerService, billingService, telemetry).apply {
+    BillingScheduler(invoiceService, customerService, telemetry).apply {
         schedule {
             job<BillingJob> {
                 withIdentity("billing-job1", "group1")

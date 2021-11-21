@@ -1,7 +1,6 @@
 package io.pleo.antaeus.core.scheduler
 
 import io.pleo.antaeus.core.external.Telemetry
-import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
@@ -13,13 +12,12 @@ private val logger = KotlinLogging.logger {}
 class BillingScheduler(
     invoiceService: InvoiceService,
     customerService: CustomerService,
-    billingService: BillingService,
     telemetry: Telemetry,
     private val scheduler: Scheduler = StdSchedulerFactory.getDefaultScheduler(),
 ) {
 
     init {
-        scheduler.setJobFactory(AntaeusJobFactory(invoiceService, customerService, billingService))
+        scheduler.setJobFactory(AntaeusJobFactory(invoiceService, customerService))
         scheduler.listenerManager.addJobListener(AntaeusJobListener(telemetry))
     }
 

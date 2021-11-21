@@ -51,8 +51,6 @@ class BillingServiceTest {
                 paymentProviderMock {throws(NetworkException())} andArg NetworkFailure::class
             )
         }
-
-        private infix fun <A, B> A.andArg(that: B): Arguments = Arguments.of(this, that)
     }
 
 }
