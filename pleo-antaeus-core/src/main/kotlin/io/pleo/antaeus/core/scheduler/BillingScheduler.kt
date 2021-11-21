@@ -29,28 +29,27 @@ class BillingScheduler(
     /**
      * Schedule a job, you can create job and trigger from this micro DSL.
      *
-     * @see ScheduleJob.job
+     * @see ScheduleJob.jobDetail
      * @see ScheduleJob.cronTrigger
      */
     fun schedule(scheduleJob: ScheduleJob.() -> Unit) {
         ScheduleJob()
             .apply(scheduleJob)
+            .throwIfUninitialized()
             .let {
-                scheduler.scheduleJob(it.job, it.trigger)
+                scheduler.scheduleJob(it.jobDetail, it.trigger)
             }
     }
 
     inner class ScheduleJob {
-        // has to be public due to type erasure :(
-        // TODO: add more descriptive exceptions instead of lateinit
-        lateinit var job: JobDetail
+        lateinit var jobDetail: JobDetail
         internal lateinit var trigger: Trigger
 
         /**
          * Kotlinified quartz job builder
          */
         inline fun <reified T : Job> job(builder: JobBuilder.() -> JobBuilder) {
-            job = JobBuilder.newJob(T::class.java)
+            jobDetail = JobBuilder.newJob(T::class.java)
                 .builder()
                 .build()
         }
@@ -68,6 +67,12 @@ class BillingScheduler(
                 .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression))
                 .builder()
                 .build()
+        }
+
+        internal fun throwIfUninitialized(): ScheduleJob {
+            if (!::jobDetail.isInitialized || !::trigger.isInitialized)
+                throw SchedulerException("BillingScheduler job initialization error!")
+            return this
         }
     }
 

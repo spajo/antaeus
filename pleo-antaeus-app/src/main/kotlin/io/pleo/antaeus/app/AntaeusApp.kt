@@ -74,7 +74,7 @@ fun main() {
             job<BillingJob> {
                 withIdentity("billing-job1", "group1")
             }
-            cronTrigger("0/10 * * * * ?") {
+            cronTrigger("0 0 0 1 * ?") {
                 withIdentity("cronTrigger", "group1")
             }
         }
