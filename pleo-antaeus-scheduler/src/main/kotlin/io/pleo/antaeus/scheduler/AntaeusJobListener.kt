@@ -1,13 +1,9 @@
-package io.pleo.antaeus.core.scheduler
+package io.pleo.antaeus.scheduler
 
 import io.pleo.antaeus.core.external.Telemetry
 import org.quartz.JobExecutionContext
 import org.quartz.JobExecutionException
 import org.quartz.listeners.JobListenerSupport
-
-interface Results {
-    val results: List<Result>
-}
 
 class AntaeusJobListener(private val telemetry: Telemetry) : JobListenerSupport(), Results {
 

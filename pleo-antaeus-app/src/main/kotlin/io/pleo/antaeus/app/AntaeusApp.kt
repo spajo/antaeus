@@ -9,8 +9,6 @@ package io.pleo.antaeus.app
 
 import getPaymentProvider
 import getTelemetry
-import io.pleo.antaeus.core.scheduler.BillingJob
-import io.pleo.antaeus.core.scheduler.BillingScheduler
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -18,6 +16,8 @@ import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerTable
 import io.pleo.antaeus.data.InvoiceTable
 import io.pleo.antaeus.rest.AntaeusRest
+import io.pleo.antaeus.scheduler.BillingJob
+import io.pleo.antaeus.scheduler.BillingScheduler
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -88,6 +88,3 @@ fun main() {
         jobResults = scheduler.jobResults
     ).run()
 }
-
-//"0/10 * * * * ?"
-// "0 0 0 1 * ?"

@@ -1,4 +1,4 @@
-package io.pleo.antaeus.core.scheduler
+package io.pleo.antaeus.scheduler
 
 import org.quartz.JobExecutionContext
 

@@ -58,13 +58,6 @@ class AntaeusDal(private val db: Database) {
         } > 0
     }
 
-    fun invoiceExists(id: Int): Boolean {
-        return transaction {
-            InvoiceTable.select { InvoiceTable.id.eq(id) }
-                .empty().not()
-        }
-    }
-
     fun customerExists(id: Int): Boolean {
         return transaction {
             CustomerTable.select { CustomerTable.id.eq(id) }

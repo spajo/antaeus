@@ -1,4 +1,4 @@
-package io.pleo.antaeus.core.scheduler
+package io.pleo.antaeus.scheduler
 
 import io.pleo.antaeus.core.external.Telemetry
 import io.pleo.antaeus.core.services.CustomerService
