@@ -85,7 +85,7 @@ fun main() {
     AntaeusRest(
         invoiceService = invoiceService,
         customerService = customerService,
-        results = scheduler.results
+        jobResults = scheduler.jobResults
     ).run()
 }
 

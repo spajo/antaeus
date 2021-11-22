@@ -56,7 +56,7 @@ internal fun getRandomCurrency(): Currency {
 internal fun getPaymentProvider(): PaymentProvider {
     return object : PaymentProvider {
         override fun charge(invoice: Invoice): Boolean {
-            if (Random.nextInt(100) > 95) throw NetworkException()
+            if (Random.nextInt(100) > 90) throw NetworkException()
             if (invoice.customerId == 404) throw CustomerNotFoundException(404)
             return Random.nextBoolean()
         }

@@ -19,7 +19,7 @@ private val thisFile: () -> Unit = {}
 class AntaeusRest(
     private val invoiceService: InvoiceService,
     private val customerService: CustomerService,
-    private val results: Results,
+    private val jobResults: Results,
 ) : Runnable {
 
     override fun run() {
@@ -72,7 +72,7 @@ class AntaeusRest(
                     path("results") {
                         // URL: /rest/v1/results
                         get {
-                            it.json(results.results())
+                            it.json(jobResults.results)
                         }
                     }
 

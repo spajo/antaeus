@@ -8,6 +8,9 @@ import org.quartz.Scheduler
 import org.quartz.SchedulerException
 import org.quartz.simpl.SimpleJobFactory
 import org.quartz.spi.TriggerFiredBundle
+import java.sql.Timestamp
+import java.time.Instant
+import java.util.*
 
 /**
  * Abstract Job class to allow injection of services.
@@ -20,13 +23,28 @@ sealed class AntaeusJob(
 ) : Job {
     abstract fun startJob(): Result
     override fun execute(context: JobExecutionContext?) {
-        context?.result = startJob()
+        context?.apply {
+            result = startJob().also {
+                it.addJobData(this)
+            }
+        }
     }
 }
 
-// TODO: add timestamps more details etc
-data class Result(var paymentSuccessCount: Int, var paymentFailureCount: Int) {
-    constructor() : this(0, 0)
+data class Result(
+    var timestamp: Timestamp = Timestamp.from(Instant.now()),
+    var paymentSuccessCount: Int = 0,
+    var invalidInvoicesCount: Int = 0,
+    var pausedInvoicesCount: Int = 0,
+) {
+
+    lateinit var jobId: String
+    lateinit var fireTime: Date
+
+    internal fun addJobData(context: JobExecutionContext) {
+        jobId = context.jobDetail.key.name
+        fireTime = context.fireTime
+    }
 }
 
 /**

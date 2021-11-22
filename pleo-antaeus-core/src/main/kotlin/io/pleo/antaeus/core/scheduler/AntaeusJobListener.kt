@@ -6,20 +6,23 @@ import org.quartz.JobExecutionException
 import org.quartz.listeners.JobListenerSupport
 
 interface Results {
-    fun results(): List<Result>
+    val results: List<Result>
 }
 
 class AntaeusJobListener(private val telemetry: Telemetry) : JobListenerSupport(), Results {
 
-    private val results = mutableListOf<Result>()
-    override fun results() = results.toList()
+    // Ideally those results would be stored in the DB
+    // or reported to some external service
+    private val _results = mutableListOf<Result>()
+    override val results
+        get() = _results.toList()
 
     override fun getName(): String = "antaeus-job-listener"
 
     override fun jobExecutionVetoed(context: JobExecutionContext?) {
         val message = context?.let {
             it.jobDetail.jobClass.name.let { "$it execution vetoed" }
-        } ?: "Unable to get job details..."
+        } ?: "Job vetoed, but unable to get job details..."
         telemetry.sendAlert("JOB", message)
     }
 
@@ -28,10 +31,10 @@ class AntaeusJobListener(private val telemetry: Telemetry) : JobListenerSupport(
         jobException: JobExecutionException?,
     ) {
         val message = context?.let {
-            val result = it.result as Result
-            results.add(result)
+            val result = it.jobResult()
+            _results += result
             it.jobDetail.jobClass.name.let { "$it finished! $result" }
-        } ?: "Unable to get job details..."
+        } ?: "Job Finished, but unable to get job details..."
         telemetry.sendAlert("JOB", message)
     }
 }

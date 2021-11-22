@@ -17,28 +17,30 @@ class BillingJob(
         .asSequence()
         .map { invoiceService.charge(it) }
         .map { handleState(it) }
-        .groupBy { it }
+        .groupBy { it::class }
         .toList()
-        .fold(Result()) { acc, pair ->
+        .fold(Result()) { acc, (klass, states) ->
             acc.apply {
-                if (pair.first) {
-                    paymentSuccessCount = pair.second.size
-                } else
-                    paymentFailureCount = pair.second.size
+                when (klass) {
+                    InvoiceState.Invalid::class -> invalidInvoicesCount = states.size
+                    InvoiceState.Paid::class -> paymentSuccessCount = states.size
+                    InvoiceState.Paused::class -> pausedInvoicesCount = states.size
+                    else -> logger.warn { "Invalid state of the invoice: $klass" }
+                }
             }
         }
 
-    private fun handleState(state: InvoiceState): Boolean = when (state) {
-        is InvoiceState.Paid -> true
+    private fun handleState(state: InvoiceState): InvoiceState = when (state) {
         is InvoiceState.Paused -> {
             customerService
                 .pauseSubscription(state.customerId)
+            state
         }
-        is InvoiceState.Invalid -> false
         is InvoiceState.Pending -> {
             // try again, I don't like recursion this will have to change probs
-            // TODO: add some backoff?
+            // TODO: add some backoff? or maybe schedule new job for still pending?
             handleState(invoiceService.charge(state.invoice))
         }
+        else -> state
     }
 }

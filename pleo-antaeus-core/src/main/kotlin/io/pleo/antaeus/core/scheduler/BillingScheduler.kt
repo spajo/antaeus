@@ -18,7 +18,7 @@ class BillingScheduler(
 
     private val jobListener = AntaeusJobListener(telemetry)
 
-    val results: Results
+    val jobResults: Results
         get() = jobListener
 
     init {
